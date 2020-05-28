@@ -1,49 +1,6 @@
 from datetime import time, datetime, timedelta
 
 
-# dijkstra algorithm from zyBooks class material
-def dijkstra_shortest_path(g, start_vertex):
-    # Put all vertices in an unvisited queue.
-    unvisited_queue = []
-    for current_vertex in g.adjacency_list:
-        unvisited_queue.append(current_vertex)
-
-    # Start_vertex has a distance of 0 from itself
-    start_vertex.distance = 0.0
-
-    # One vertex is removed with each iteration; repeat until the list is
-    # empty.
-    while len(unvisited_queue) > 0:
-
-        # Visit vertex with minimum distance from start_vertex
-        smallest_index = 0
-        for i in range(1, len(unvisited_queue)):
-            if unvisited_queue[i].distance < unvisited_queue[smallest_index].distance:
-                smallest_index = i
-        current_vertex = unvisited_queue.pop(smallest_index)
-
-        # Check potential path lengths from the current vertex to all neighbors.
-        for adj_vertex in g.adjacency_list[current_vertex]:
-            edge_weight = g.edge_weights[(current_vertex, adj_vertex)]
-            alternative_path_distance = current_vertex.distance + edge_weight
-
-            # If shorter path from start_vertex to adj_vertex is found,
-            # update adj_vertex's distance and predecessor
-            if alternative_path_distance < adj_vertex.distance:
-                adj_vertex.distance = alternative_path_distance
-                adj_vertex.pred_vertex = current_vertex
-
-
-def get_shortest_path(start_vertex, end_vertex):
-    # Start from end_vertex and build the path backwards.
-    path = ""
-    current_vertex = end_vertex
-    while current_vertex is not start_vertex:
-        path = " -> " + str(current_vertex.label) + path
-        current_vertex = current_vertex.pred_vertex
-    path = start_vertex.label + path
-    return path
-
 #  Graph constructs taken from zyBooks class material
 
 
@@ -104,7 +61,7 @@ class Truck:
 
     def deliverPackage(self, package, distance):
         self.updateTime(distance)
-        self.packageList[package.deliver(self.currTime)]
+        self.packageList[package.deliveryTime(self.currTime)]
         del self.packageList[package.packageID]
 
     def updateTime(self, distance):
@@ -112,6 +69,15 @@ class Truck:
 
     def updateLoc(self, location):
         self.location = location
+
+    def outForDelivery(self, type):
+        if type == 'Distance':
+            pass
+        elif type == 'Time':
+            pass
+        else:
+            print("Please specify Distance or Time for delivery priority.")
+            return False
 
 # TODO hash packages by delivery time to make sorting onto trucks faster?
 class PackageHashTable:
@@ -139,6 +105,14 @@ class PackageHashTable:
         else:
             return None
 
+    def searchID(self, value):
+        bucket = self.packageHash(value)
+        bucketList = self.hashTable[bucket]
+        for i in range(0, len(bucketList)):
+            if bucketList[i].packageID == value:
+                return bucketList[i]
+        return None
+
     def clear(self):
         self.hashTable.clear()
         self.__init__()
@@ -146,10 +120,16 @@ class PackageHashTable:
     def packageHash(self, value):
         return value % 10
 
+    def count(self):
+        c = 0
+        for i in range(0, len(self.hashTable)):
+            c += len(self.hashTable[i])
+        return c
+
 
 def initPackages(packageMaster):
     phTable.clear()
-    for i in range(1, len(list(packageMaster))):
+    for i in range(1, len(list(packageMaster)) + 1):
         p = packageMaster[str(i)]
         if p[4] == 'EOD':
             p = list(packageMaster[str(i)])
@@ -165,11 +145,14 @@ def initPackages(packageMaster):
             phTable.insert(Package(i, p[0], p[1], p[2], p[3], delTime.strftime("%X"), p[5], p[6]))
 
 
-# TODO delivery algorithm goes here
-# TODO pass in a truck, find shortest route based on packages loaded
-def packageDeliver(truck):
-    pass
-
+def timeIsBefore(currTime, arrTime):
+    h = currTime.hour - arrTime.hour
+    m = (currTime.minute - arrTime.minute) / 60
+    s = (currTime.second - arrTime.second) / 360
+    if (h + m + s) < 0:  #return false if arrival time is after current time
+        return False
+    else:  # if (h + m + s) >= 0:
+        return True
 
 distancesFile = open("WGUPS Distance Table.csv", "rt")
 packagesFile = open("WGUPS Package File.csv", "rt")
@@ -206,6 +189,7 @@ currTime = datetime(2020, 1, 1, 8, 0, 0)
 # TODO create three lists/tables 1. packages at hub 2. packages out for deliver 3. packages delivered if len(all three) == packagemaster, stop adding to 1.
 menu = -1
 initPackages(packageMaster)
+print(phTable.count())
 while int(menu) < 0:
     menu = input("Choose a menu option:\n\t1. Input a new package\n\t2. Lookup a package\n\t3. Check package status\n\t4. Exit")
     if menu == '1':
