@@ -5,10 +5,9 @@ from datetime import time, datetime, timedelta
 
 
 class Vertex:
-    def __init__(self, label, distance=0.0, prevVertex=None):
+    def __init__(self, label, distance=0.0):
         self.label = label
         self.distance = distance
-        self.pred_vertex = prevVertex
 
 
 class Graph:
@@ -26,6 +25,19 @@ class Graph:
     def addUndirectedEdge(self, vertexA, vertexB, weight=0.0):
         self.addDirectedEdge(vertexA, vertexB, weight)
         self.addDirectedEdge(vertexB, vertexA, weight)
+
+    def getDistance(self, addr1, addr2):
+        v1 = None
+        v2 = None
+        for x in list(graphDistance.adjacencyList.keys()):
+            if v1 is not None and v2 is not None:
+                break
+            if addr1 in x.label:
+                v1 = x
+            if addr2 in x.label:
+                v2 = x
+        distance = self.edgeWeights[v1, v2]
+        return distance
 
 
 class Package:
@@ -47,14 +59,16 @@ class Package:
 
 
 class Truck:
-    def __init__(self, location, speed=18, currTime=datetime(2020, 1, 1, 8, 0, 0)):
+    def __init__(self, name, location, speed=18, currTime=datetime(2020, 1, 1, 8, 0, 0), capacity=16):
         self.packageList = {}
         self.currTime = currTime
         self.speed = speed
         self.location = location
+        self.capacity = capacity
+        self.name = name
 
     def addPackage(self, package):
-        if len(self.packageList.items()) <= 17:
+        if len(self.packageList.items()) <= self.capacity:
             self.packageList[package.packageID] = package
         else:
             print("Truck is fully loaded")
@@ -79,6 +93,15 @@ class Truck:
             print("Please specify Distance or Time for delivery priority.")
             return False
 
+    def fill(self, type):
+        if type == 'Distance':
+            pass
+        elif type == 'Time':
+            pass
+        else:
+            print("Please specify Distance or Time for delivery priority.")
+            return False
+
 # TODO hash packages by delivery time to make sorting onto trucks faster?
 class PackageHashTable:
     def __init__(self, capacity=10):
@@ -93,8 +116,8 @@ class PackageHashTable:
 
     def remove(self, value):
         bucket = self.packageHash(value.packageID)
-        if key in self.hashTable[bucket]:
-            self.hashTable.remove(value.packageID)
+        if value in self.hashTable[bucket]:
+            self.hashTable[bucket].remove(value)
 
     def search(self, value):
         bucket = self.packageHash(value.packageID)
@@ -145,7 +168,25 @@ def initPackages(packageMaster):
             phTable.insert(Package(i, p[0], p[1], p[2], p[3], delTime.strftime("%X"), p[5], p[6]))
 
 
-def timeIsBefore(currTime, arrTime):
+def popHub():
+    for i in range(1, phTable.count() + 1):
+        pack = phTable.searchID(i)
+        if ":" not in pack.notes:
+            packsAtHub.append(pack)
+            phTable.remove(pack)
+        else:
+            tStr = pack.notes.split(':')
+            h = int(tStr[0][-2:])
+            m = int(tStr[1][0:2])
+            if "pm" in tStr[1][0:].lower():
+                h += 12
+            t = datetime(2020, 1, 1, h, m)
+            if timeIsBefore(t, globalTime):
+                packsAtHub.append(pack)
+                phTable.remove(pack)
+
+
+def timeIsBefore(arrTime, currTime):
     h = currTime.hour - arrTime.hour
     m = (currTime.minute - arrTime.minute) / 60
     s = (currTime.second - arrTime.second) / 360
@@ -154,14 +195,16 @@ def timeIsBefore(currTime, arrTime):
     else:  # if (h + m + s) >= 0:
         return True
 
+
 distancesFile = open("WGUPS Distance Table.csv", "rt")
 packagesFile = open("WGUPS Package File.csv", "rt")
 graphDistance = Graph()
 packageMaster = {}
 vertexArray = []
-truck1 = Truck('HUB')
-truck2 = Truck('HUB')
+truck1 = Truck('truck 1', 'HUB')
+truck2 = Truck('truck 2', 'HUB')
 phTable = PackageHashTable()
+globalTime = datetime(2020, 1, 1, 8, 0, 0)
 
 for line in distancesFile:
     distanceArray = line.split(",")
@@ -183,8 +226,6 @@ for i in range(0, len(vertexArray)):
 for line in packagesFile:
     package = line.split(",")
     packageMaster[package[0]] = package[1:len(package)]
-
-currTime = datetime(2020, 1, 1, 8, 0, 0)
 # TODO create menu insert interface, look-up functions
 # TODO create three lists/tables 1. packages at hub 2. packages out for deliver 3. packages delivered if len(all three) == packagemaster, stop adding to 1.
 menu = -1
@@ -201,6 +242,13 @@ while int(menu) < 0:
         # TODO load trucks, truck1 gets time sensitive deliveries, truck2 gets anything EOD with notes
         # TODO truck1 gets EOD packages iff 3 lists have total len(packagemaster) and nothing else not-EOD needs to go out
         # TODO find a way to bind same delivery packages, some are time sensitive
+        packsAtHub = []
+        while phTable.count() > 0:
+            popHub()
+            truck1.fill("Distance")
+            truck2.fill("Time")
+            print(phTable.count())
+
         print("\nEnter beginning of window to check: ")
         h1 = input("\nEnter hours: ")
         m1 = input("\nEnter minutes: ")
