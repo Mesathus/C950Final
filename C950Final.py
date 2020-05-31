@@ -96,78 +96,164 @@ class Truck:
                 closest = nextLoc
         return closest
 
-    def outForDelivery(self, type):
-        if type == 'Distance':
-            packages = list(self.packageList.values())
-            while len(packages) > 0:
-                for p in packages:
-                    closest = p
-                    if p.delivered == "Delivered":
+    # def outForDelivery(self, type):
+    #     if type == 'Distance':
+    #         packages = list(self.packageList.values())
+    #         while len(packages) > 0:
+    #             for p in packages:
+    #                 closest = p
+    #                 if p.delivered == "Delivered":
+    #                     break
+    #                 for i in range(0, len(packages)):
+    #                     d1 = float(graphDistance.getDistance(self.location, packages[i].address))
+    #                     d2 = float(graphDistance.getDistance(self.location, p.address))
+    #                     if d1 < d2:  # graphDistance.getDistance(self.location, packages[i].address) < graphDistance.getDistance(self.location, p.address):
+    #                         closest = packages[i]
+    #                 distance = graphDistance.getDistance(self.location, closest.address)
+    #                 self.deliverPackage(closest, distance)
+    #                 packages.remove(closest)
+    #         self.packageList.clear()
+    #     elif type == 'Time':
+    #         packages = list(self.packageList.values())
+    #         deliveryQueue = []
+    #         while len(packages) > 0:
+    #             for p in packages:
+    #                 if p.delivered == "Delivered":
+    #                     break
+    #                 earliest = p
+    #                 for i in range(0, len(packages)):
+    #                     if 'EOD' in earliest.deadline or 'EOD' in packages[i].deadline:
+    #                         continue
+    #                     t1 = earliest.deadline.split(":")
+    #                     t2 = packages[i].deadline.split(":")
+    #                     if "pm" in earliest.notes.lower():
+    #                         h1 = int(t1[0]) + 12
+    #                     else:
+    #                         h1 = int(t1[0])
+    #                     if "pm" in packages[i].notes.lower():
+    #                         h2 = int(t2[0]) + 12
+    #                     else:
+    #                         h2 = int(t2[0])
+    #                     if timeIsBefore(datetime(2020, 1, 1, h2, int(t2[1])), datetime(2020, 1, 1, h1, int(t1[1]))):
+    #                         earliest = packages[i]
+    #                 distance = graphDistance.getDistance(self.location, earliest.address)
+    #                 if len(deliveryQueue) == 0 or deliveryQueue[0].deadline == earliest.deadline:
+    #                     deliveryQueue.append(earliest)
+    #                     packages.remove(earliest)
+    #             while len(deliveryQueue) > 0:
+    #                 for d in deliveryQueue:
+    #                     if d.delivered == "Delivered":
+    #                         break
+    #                     closest = d
+    #                     for i in range(0, len(deliveryQueue)):
+    #                         d1 = float(graphDistance.getDistance(self.location, deliveryQueue[i].address))
+    #                         d2 = float(graphDistance.getDistance(self.location, d.address))
+    #                         if d1 < d2:  # graphDistance.getDistance(self.location, packages[i].address) < graphDistance.getDistance(self.location, p.address):
+    #                             closest = deliveryQueue[i]
+    #                     distance = graphDistance.getDistance(self.location, closest.address)
+    #                     self.deliverPackage(closest, distance)
+    #                     deliveryQueue.remove(closest)
+    #                     # self.deliverPackage(earliest, distance)
+    #                     # packages.remove(earliest)
+    #         if len(deliveryQueue) == 0 and len(packages) > 0:
+    #             self.outForDelivery("Distance")
+    #         self.packageList.clear()
+    #         # for p in self.packageList:
+    #     else:
+    #         print("Please specify Distance or Time for delivery priority.")
+    #         return False
+    #     self.dailyDistance += graphDistance.getDistance(self.location, 'HUB')
+    #     self.location = 'HUB'
+
+    def outForDelivery(self):
+        packages = list(self.packageList.values())
+        deliveryQueue = []
+        while len(packages) > 0:
+            for p in packages:
+                if p.delivered == "Delivered":
+                    break
+                earliest = p
+                for i in range(0, len(packages)):
+                    if 'EOD' in earliest.deadline or 'EOD' in packages[i].deadline:
                         break
-                    for i in range(0, len(packages)):
-                        d1 = float(graphDistance.getDistance(self.location, packages[i].address))
-                        d2 = float(graphDistance.getDistance(self.location, p.address))
+                    t1 = earliest.deadline.split(":")
+                    t2 = packages[i].deadline.split(":")
+                    if "pm" in earliest.notes.lower():
+                        h1 = int(t1[0]) + 12
+                    else:
+                        h1 = int(t1[0])
+                    if "pm" in packages[i].notes.lower():
+                        h2 = int(t2[0]) + 12
+                    else:
+                        h2 = int(t2[0])
+                    if timeIsBefore(datetime(2020, 1, 1, h2, int(t2[1])), datetime(2020, 1, 1, h1, int(t1[1]))):
+                        earliest = packages[i]
+                distance = graphDistance.getDistance(self.location, earliest.address)
+                if len(deliveryQueue) == 0 or deliveryQueue[0].deadline == earliest.deadline:
+                    deliveryQueue.append(earliest)
+                    packages.remove(earliest)
+            while len(deliveryQueue) > 0:
+                for d in deliveryQueue:
+                    if d.delivered == "Delivered":
+                        break
+                    closest = d
+                    for i in range(0, len(deliveryQueue)):
+                        d1 = float(graphDistance.getDistance(self.location, deliveryQueue[i].address))
+                        d2 = float(graphDistance.getDistance(self.location, d.address))
                         if d1 < d2:  # graphDistance.getDistance(self.location, packages[i].address) < graphDistance.getDistance(self.location, p.address):
-                            closest = packages[i]
+                            closest = deliveryQueue[i]
                     distance = graphDistance.getDistance(self.location, closest.address)
                     self.deliverPackage(closest, distance)
-                    packages.remove(closest)
-            self.packageList.clear()
-        elif type == 'Time':
-            packages = list(self.packageList.values())
-            while len(packages) > 0:
-                for p in packages:
-                    if p.delivered == "Delivered":
-                        break
-                    earliest = p
-                    for i in range(0, len(packages)):
-                        t1 = earliest.deadline.split(":")
-                        t2 = packages[i].deadline.split(":")
-                        if "pm" in earliest.notes.lower():
-                            h1 = int(t1[0]) + 12
-                        else:
-                            h1 = int(t1[0])
-                        if "pm" in packages[i].notes.lower():
-                            h2 = int(t2[0]) + 12
-                        else:
-                            h2 = int(t2[0])
-                        if timeIsBefore(datetime(2020, 1, 1, h2, int(t2[1])), datetime(2020, 1, 1, h1, int(t1[1]))):
-                            earliest = packages[i]
-                    distance = graphDistance.getDistance(self.location, earliest.address)
-                    self.deliverPackage(earliest, distance)
-                    packages.remove(earliest)
-            self.packageList.clear()
-            # for p in self.packageList:
+                    deliveryQueue.remove(closest)
+                    # self.deliverPackage(earliest, distance)
+                    # packages.remove(earliest)
+        self.packageList.clear()
 
-        else:
-            print("Please specify Distance or Time for delivery priority.")
-            return False
+    # def fill(self, type):
+    #     if type == 'Distance':
+    #         for p in packsAtHub:
+    #             if len(self.packageList.items()) < self.capacity:
+    #                 if len(p.notes) <= 2 or self.name in p.notes:
+    #                     if 'EOD' in p.deadline:
+    #                         self.addPackage(p)
+    #             else:
+    #                 break
+    #         for p in self.packageList.values():
+    #             packsAtHub.remove(p)
+    #         self.outForDelivery(type)
+    #     elif type == 'Time':
+    #         for p in packsAtHub:
+    #             if len(self.packageList.items()) < self.capacity:
+    #                 if 'EOD' not in p.deadline:
+    #                     self.addPackage(p)
+    #             else:
+    #                 break
+    #         for p in packsAtHub:
+    #             if len(self.packageList.items()) < self.capacity:
+    #                 if self.name in p.notes:
+    #                     self.addPackage(p)
+    #         for p in self.packageList.values():
+    #             packsAtHub.remove(p)
+    #         self.outForDelivery(type)
+    #     else:
+    #         print("Please specify Distance or Time for delivery priority.")
+    #         return False
 
-    def fill(self, type):
-        if type == 'Distance':
-            for p in packsAtHub:
-                if len(self.packageList.items()) < self.capacity:
-                    if len(p.notes) <= 2 or self.name in p.notes:
-                        if 'EOD' in p.deadline:
-                            self.addPackage(p)
-                else:
-                    break
-            for p in self.packageList.values():
-                packsAtHub.remove(p)
-            self.outForDelivery(type)
-        elif type == 'Time':
-            for p in packsAtHub:
-                if len(self.packageList.items()) < self.capacity:
-                    if 'EOD' not in p.deadline:
+    def fill(self):
+        for p in packsAtHub:
+            if len(self.packageList.items()) < 5:
+                if 'EOD' not in p.deadline:
+                    self.addPackage(p)
+            if len(self.packageList.items()) < self.capacity:
+                if len(p.notes) <= 2 or self.name in p.notes or ":" in p.notes:
+                    if 'EOD' in p.deadline:
                         self.addPackage(p)
-                else:
-                    break
-            for p in self.packageList.values():
-                packsAtHub.remove(p)
-            self.outForDelivery(type)
-        else:
-            print("Please specify Distance or Time for delivery priority.")
-            return False
+            else:
+                break
+        for p in self.packageList.values():
+            packsAtHub.remove(p)
+        self.outForDelivery()
+
 
 # TODO hash packages by delivery time to make sorting onto trucks faster?
 class PackageHashTable:
@@ -243,14 +329,13 @@ def initPackages(packageMaster):
             phTable.insert(Package(i, p[0], p[1], p[2], p[3], delTime.strftime("%X"), p[5], p[6]))
 
 
-def popHub():
+def popHub(time):
     for i in range(1, phTable.count() + 1):  # range(1, phTable.count() + 1)
         if phTable.searchID(i):
             pack = phTable.searchID(i)
-            if "Delivered" not in pack.delivered:
+            if "Delivered" not in pack.delivered and pack not in packsAtHub:
                 if ":" not in pack.notes:
                     packsAtHub.append(pack)
-                    # phTable.remove(pack)
                 else:
                     tStr = pack.notes.split(':')
                     h = int(tStr[0][-2:])
@@ -258,9 +343,9 @@ def popHub():
                     if "pm" in tStr[1][0:].lower():
                         h += 12
                     t = datetime(2020, 1, 1, h, m)
-                    if timeIsBefore(t, globalTime):
+                    if timeIsBefore(t, time):
                         packsAtHub.append(pack)
-                        # phTable.remove(pack)
+
 
 
 def timeIsBefore(arrTime, currTime):
@@ -277,6 +362,7 @@ distancesFile = open("WGUPS Distance Table.csv", "rt")
 packagesFile = open("WGUPS Package File.csv", "rt")
 graphDistance = Graph()
 packageMaster = {}
+pm = []  # TODO replace packageMaster with pm
 vertexArray = []
 truck1 = Truck('truck 1', 'HUB')
 truck2 = Truck('truck 2', 'HUB')
@@ -303,39 +389,58 @@ for i in range(0, len(vertexArray)):
 for line in packagesFile:
     package = line.split(",")
     packageMaster[package[0]] = package[1:len(package)]
+    pm.append((int(package[0]), package[1:len(package)]))
+# print(pm[0][0])
+# print(pm[0][1])
+# print(pm[0][1][0])
+# for i in range(0, len(pm)):
+#     print(pm[i][1][4])
 # TODO create menu insert interface, look-up functions
-# TODO create three lists/tables 1. packages at hub 2. packages out for deliver 3. packages delivered if len(all three) == packagemaster, stop adding to 1.
 menu = -1
+
 initPackages(packageMaster)
 print(phTable.count())
 while int(menu) < 0:
-    menu = input("Choose a menu option:\n\t1. Input a new package\n\t2. Lookup a package\n\t3. Check package status\n\t4. Exit")
+    #  menu = input("Choose a menu option:\n\t1. Input a new package\n\t2. Lookup a package\n\t3. Check package status\n\t4. Exit")
+    menu = '3'
     if menu == '1':
 
         menu = -1
     elif menu == '2':
         pass
     elif menu == '3':
-        # TODO run package delivery
         # TODO find a way to bind same delivery packages
         packsAtHub = []
         while phTable.countDelivered() < phTable.count():
-            popHub()
-            truck1.fill("Distance")
-            truck2.fill("Time")
+            popHub(globalTime)
+            # fillType = "Time"
+            # for i in range(0, len(packsAtHub)):
+            #     if 'EOD' not in packsAtHub[i].deadline:
+            #         fillType = "Time"
+            #         break
+            #     else:
+            #         fillType = "Distance"
+            truck1.fill()
+            truck2.fill()
+            if timeIsBefore(truck1.currTime, truck2.currTime):
+                globalTime = truck2.currTime
+            else:
+                globalTime = truck1.currTime
             print(phTable.countDelivered())
             print(phTable.count())
             for i in range(1, phTable.count() + 1):
                 if phTable.searchID(i).deliveryTime is not None:
                     print(str(phTable.searchID(i).packageID) + " Deadline: " + phTable.searchID(i).deadline + " Delivery Time: " + phTable.searchID(i).deliveryTime.strftime("%X"))
+            print("Truck 1 distance: " + str(truck1.dailyDistance) + " Truck 2 distance: " + str(truck2.dailyDistance))
+            print("Total distance: " + str(truck1.dailyDistance + truck2.dailyDistance))
 
         print("\nEnter beginning of window to check: ")
-        h1 = input("\nEnter hours: ")
-        m1 = input("\nEnter minutes: ")
+        h1 = input("Enter hours: ")
+        m1 = input("Enter minutes: ")
         noon1 = input("Enter AM or PM: ").upper()
         print("\nEnter end of window to check: ")
-        h2 = input("\nEnter hours: ")
-        m2 = input("\nEnter minutes: ")
+        h2 = input("Enter hours: ")
+        m2 = input("Enter minutes: ")
         noon2 = input("Enter AM or PM: ").upper()
         pass
     elif menu == '4':
