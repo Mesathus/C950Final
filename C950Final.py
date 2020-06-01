@@ -168,30 +168,36 @@ class Truck:
     def outForDelivery(self):
         packages = list(self.packageList.values())
         deliveryQueue = []
+        eodQueue = []
         while len(packages) > 0:
             for p in packages:
                 if p.delivered == "Delivered":
                     break
                 earliest = p
                 for i in range(0, len(packages)):
-                    if 'EOD' in earliest.deadline or 'EOD' in packages[i].deadline:
-                        break
-                    t1 = earliest.deadline.split(":")
-                    t2 = packages[i].deadline.split(":")
-                    if "pm" in earliest.notes.lower():
-                        h1 = int(t1[0]) + 12
-                    else:
-                        h1 = int(t1[0])
-                    if "pm" in packages[i].notes.lower():
-                        h2 = int(t2[0]) + 12
-                    else:
-                        h2 = int(t2[0])
-                    if timeIsBefore(datetime(2020, 1, 1, h2, int(t2[1])), datetime(2020, 1, 1, h1, int(t1[1]))):
-                        earliest = packages[i]
-                distance = graphDistance.getDistance(self.location, earliest.address)
+                    # if 'EOD' in earliest.deadline:
+                    #     eodQueue.append(earliest)
+                    # if 'EOD' in packages[i].deadline:
+                    #     break
+                    if 'EOD' not in earliest.deadline and 'EOD' not in packages[i].deadline:
+                        t1 = earliest.deadline.split(":")
+                        t2 = packages[i].deadline.split(":")
+                        if "pm" in earliest.notes.lower():
+                            h1 = int(t1[0]) + 12
+                        else:
+                            h1 = int(t1[0])
+                        if "pm" in packages[i].notes.lower():
+                            h2 = int(t2[0]) + 12
+                        else:
+                            h2 = int(t2[0])
+                        if timeIsBefore(datetime(2020, 1, 1, h2, int(t2[1])), datetime(2020, 1, 1, h1, int(t1[1]))):
+                            earliest = packages[i]
                 if len(deliveryQueue) == 0 or deliveryQueue[0].deadline == earliest.deadline:
-                    deliveryQueue.append(earliest)
-                    packages.remove(earliest)
+                    if 'EOD' not in earliest.deadline:
+                        deliveryQueue.append(earliest)
+                    else:
+                        eodQueue.append(earliest)
+                packages.remove(earliest)
             while len(deliveryQueue) > 0:
                 for d in deliveryQueue:
                     if d.delivered == "Delivered":
@@ -207,6 +213,19 @@ class Truck:
                     deliveryQueue.remove(closest)
                     # self.deliverPackage(earliest, distance)
                     # packages.remove(earliest)
+            while len(eodQueue) > 0:
+                for d in eodQueue:
+                    if d.delivered == "Delivered":
+                        break
+                    closest = d
+                    for i in range(0, len(eodQueue)):
+                        d1 = float(graphDistance.getDistance(self.location, eodQueue[i].address))
+                        d2 = float(graphDistance.getDistance(self.location, d.address))
+                        if d1 < d2:  # graphDistance.getDistance(self.location, packages[i].address) < graphDistance.getDistance(self.location, p.address):
+                            closest = eodQueue[i]
+                    distance = graphDistance.getDistance(self.location, closest.address)
+                    self.deliverPackage(closest, distance)
+                    eodQueue.remove(closest)
         self.packageList.clear()
 
     # def fill(self, type):
@@ -241,7 +260,7 @@ class Truck:
 
     def fill(self):
         for p in packsAtHub:
-            if len(self.packageList.items()) < 5:
+            if len(self.packageList.items()) < 6:
                 if 'EOD' not in p.deadline:
                     self.addPackage(p)
             if len(self.packageList.items()) < self.capacity:
