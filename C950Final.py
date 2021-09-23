@@ -666,8 +666,8 @@ menu = -1
 sortHub()
 initPackages(packageMaster)
 print(phTable.count())
-while int(menu) < 0:
-    #  menu = input("Choose a menu option:\n\t1. Input a new package\n\t2. Lookup a package\n\t3. Check package status\n\t4. Exit")
+while int(menu) < 1:
+    #  menu = input("Choose a menu option:\n\t1. Input a new package\n\t2. Lookup a package\n\t3. Check delivery status\n\t4. Exit")
     menu = '3'
     if menu == '1':
 
