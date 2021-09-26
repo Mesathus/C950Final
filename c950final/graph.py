@@ -1,22 +1,36 @@
 import networkx as nx
-import networkx.drawing
 import matplotlib.pyplot as plt
 import csv
 
 
-g = nx.Graph()
+LOC_FILE = 'c950final/data/locations.csv'
+EDGE_FILE = 'c950final/data/edges.csv'
+GRAPH_PIC = 'c950final/data/graph.png'
 
-with open('nodes.txt', 'r') as node_file:
-    for line in node_file:
-        g.add_node(line.strip())
 
-with open('edges.csv', 'r') as edge_file:
-    reader = csv.reader(edge_file)
-    for line in reader:
-        g.add_edge(line[0], line[2], dist=line[1])
+def print_full_graph():
+    g = nx.Graph()
 
-nx.draw(g, with_labels=True, pos=nx.circular_layout(g, 15))
-plt.savefig("graph.png")
-#plt.show()
+    with open(LOC_FILE, 'r', newline='') as loc_file:
+        reader = csv.reader(loc_file)
+        for location in reader:
+            g.add_node(location[0])
 
-print("Done.")
+    with open(EDGE_FILE, 'r') as edge_file:
+        reader = csv.reader(edge_file)
+        for line in reader:
+            g.add_edge(line[0], line[2], dist=line[1])
+
+    nx.draw(g, with_labels=True, pos=nx.circular_layout(g, 15))
+    plt.savefig(GRAPH_PIC)
+    #plt.show()
+    print("Done printing graph.")
+
+
+def print_path(path):
+    # TODO
+    print("Done printing path.")
+
+
+if __name__ == "__main__":
+    print_graph()
