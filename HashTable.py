@@ -14,7 +14,7 @@ class PackageHashTable:
         if value in self.hashTable[bucket]:
             self.hashTable[bucket].remove(value)
 
-    def search(self, value):
+    def search(self, value):  # search the table by package object
         bucket = self.packageHash(value.packageID)
         bucketList = self.hashTable[bucket]
         if value in bucketList:
@@ -23,7 +23,7 @@ class PackageHashTable:
         else:
             return None
 
-    def searchID(self, value):
+    def searchID(self, value):  # search the table by integer package id
         bucket = self.packageHash(value)
         bucketList = self.hashTable[bucket]
         for item in range(0, len(bucketList)):
@@ -35,16 +35,16 @@ class PackageHashTable:
         self.hashTable.clear()
         self.__init__()
 
-    def packageHash(self, value):
+    def packageHash(self, value):  # hash function to sort into buckets
         return value % 10
 
-    def count(self):
+    def count(self):  # count the number of items in the hash table
         c = 0
         for item in range(0, len(self.hashTable)):
             c += len(self.hashTable[item])
         return c
 
-    def countDelivered(self):
+    def countDelivered(self):  # return a count of how many packages have Delivered status
         c = 0
         for item in range(0, len(self.hashTable)):
             for jtem in range(0, len(self.hashTable[item])):
@@ -52,11 +52,11 @@ class PackageHashTable:
                     c += 1
         return c
 
-    def deliver(self, pack):
+    def deliver(self, pack):  # update method
         toUpdate = self.searchID(pack.packageID)
         toUpdate.delivered = 'Delivered'
 
-    def load(self, pack, loadTime):
+    def load(self, pack, loadTime):  # update method
         toUpdate = self.searchID(pack.packageID)
         toUpdate.loaded = True
         toUpdate.loadTime = loadTime

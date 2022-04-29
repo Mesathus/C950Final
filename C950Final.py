@@ -130,7 +130,7 @@ for p in packsAtHub:
         undeliveredPacks.append(p)
 
 truck1List = [13, 14, 15, 16, 19, 20, 21, 27, 34, 35, 39]  # grouped together 13, 14, 15, 16, 19, 20
-truck2List = [4, 11, 12, 17, 18, 23, 24, 31, 36, 40] # deadlines 1, 6, 13, 14, 15, 16, 20, 25, 29, 30, 31, 34, 37, 40
+truck2List = [4, 11, 12, 17, 18, 23, 24, 31, 36, 40]  # deadlines 1, 6, 13, 14, 15, 16, 20, 25, 29, 30, 31, 34, 37, 40
 newPack = getPackList(undeliveredPacks, truck1List)
 truck1.addPackageList(newPack, phTable)
 

@@ -106,6 +106,7 @@ class Truck:
                 if p.delivered == "Delivered":  # ensure we don't try to double deliver a package
                     break
                 closest = p
+                # nested loop makes this O(n^2) run time
                 for i in range(0, len(deliveryQueue)):  # finding the closest address to the current location
                     d1 = float(graph.getDistance(self.location, deliveryQueue[i].address))
                     d2 = float(graph.getDistance(self.location, closest.address))
@@ -114,8 +115,8 @@ class Truck:
                 distance = graph.getDistance(self.location, closest.address)
                 self.deliverPackage(closest, distance, phTable)
                 deliveryQueue.remove(closest)  # remove from the delivery queue after package is delivered
-        self.packageList.clear()
-        self.returnHome(graph)
+        self.packageList.clear()  # clear the package list once everything is delivered so we don't get an over capacity error
+        self.returnHome(graph)  # return to the hub for the next set of packages
 
 
 def timeIsBefore(arrTime, currTime):  # returns True if arrival time is before current time
