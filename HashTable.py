@@ -56,6 +56,7 @@ class PackageHashTable:
         toUpdate = self.searchID(pack.packageID)
         toUpdate.delivered = 'Delivered'
 
-    def load(self, pack):
+    def load(self, pack, loadTime):
         toUpdate = self.searchID(pack.packageID)
         toUpdate.loaded = True
+        toUpdate.loadTime = loadTime
