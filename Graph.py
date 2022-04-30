@@ -1,17 +1,16 @@
-#  Graph constructs taken from zyBooks class material
-
-
 class Vertex:
     def __init__(self, label, distance=0.0):
         self.label = label
         self.distance = distance
 
 
+#  graph construct to retrieve distances from
 class Graph:
     def __init__(self):
         self.adjacencyList = {}
         self.edgeWeights = {}
 
+    # methods to create edges
     def addVertex(self, newVertex):
         self.adjacencyList[newVertex] = []
 
@@ -23,6 +22,8 @@ class Graph:
         self.addDirectedEdge(vertexA, vertexB, weight)
         self.addDirectedEdge(vertexB, vertexA, weight)
 
+    # method we can call from the main to get a distance from the graph
+    # address arguments are generated from package/truck locations
     def getDistance(self, addr1, addr2):
         v1 = None
         v2 = None

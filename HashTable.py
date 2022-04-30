@@ -14,6 +14,8 @@ class PackageHashTable:
         if value in self.hashTable[bucket]:
             self.hashTable[bucket].remove(value)
 
+    # search by package has been deprecated in favor of searching by ID
+    # present in case a use case is found
     def search(self, value):  # search the table by package object
         bucket = self.packageHash(value.packageID)
         bucketList = self.hashTable[bucket]
@@ -24,9 +26,9 @@ class PackageHashTable:
             return None
 
     def searchID(self, value):  # search the table by integer package id
-        bucket = self.packageHash(value)
+        bucket = self.packageHash(value)  # hash the ID to find the bucket
         bucketList = self.hashTable[bucket]
-        for item in range(0, len(bucketList)):
+        for item in range(0, len(bucketList)):  # search the bucket for the ID
             if bucketList[item].packageID == value:
                 return bucketList[item]
         return False

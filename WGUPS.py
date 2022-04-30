@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 
 
+# package class that can be store in the hash table as an object
+# to include methods for frequent actions
 class Package:
     def __init__(self, packageID, address, city, state, zip, deadline, weight, notes=None):
         self.packageID = packageID
@@ -20,6 +22,7 @@ class Package:
         self.delivered = 'Delivered'
         self.deliveryTime = deliveryTime
 
+    # method to retrieve package status in a particular time frame
     def getStatus(self, startTime, endTime):
         if timeIsBefore(self.deliveryTime, endTime):  # delivery time is before the start window
             return "Package " + str(self.packageID) + " was delivered at " + str(self.deliveryTime.strftime("%X")) + "."
@@ -29,6 +32,7 @@ class Package:
         else:                                                                                   # load and deliver are after the close window
             return "Package " + str(self.packageID) + " is still at the hub."
 
+    # method to display information about self in an organized fashion
     def info(self):
         if self.delivered == 'HUB':
             status = " This package is currently at the hub."
@@ -49,6 +53,7 @@ class Truck:
         self.name = name.lower()
         self.dailyDistance = 0
 
+    # method to add individual packages to the truck
     def addPackage(self, pack, phTable):
         if len(self.packageList.items()) <= self.capacity:
             self.packageList[pack.packageID] = pack
@@ -82,14 +87,14 @@ class Truck:
     def updateTime(self, distance):
         self.currTime = self.currTime + timedelta(hours=distance/self.speed)
 
-    def count(self):  # count items loaded to the truck
+    def count(self):  # count items loaded to the truck, can't rely on length since the trucks have fixed capacities
         count = 0
         for item in list(self.packageList.values()):
             if item is not None:
                 count = count + 1
         return count
 
-    def returnHome(self, graph):  # return to the hub
+    def returnHome(self, graph):  # return to the hub and update distance/time
         distance = graph.getDistance(self.location, 'HUB')
         self.updateTime(distance)
         self.location = 'HUB'
@@ -103,10 +108,10 @@ class Truck:
         packages.clear()
         while len(deliveryQueue) > 0:  # ensure everything gets delivered
             for p in deliveryQueue:
-                if p.delivered == "Delivered":  # ensure we don't try to double deliver a package
+                if p.delivered == "Delivered":  # ensure we don't try to double deliver a package, this has been unnecessary in testing
                     break
                 closest = p
-                # nested loop makes this O(n^2) run time
+                # multiple nested loops make this O(n^3) run time
                 for i in range(0, len(deliveryQueue)):  # finding the closest address to the current location
                     d1 = float(graph.getDistance(self.location, deliveryQueue[i].address))
                     d2 = float(graph.getDistance(self.location, closest.address))
